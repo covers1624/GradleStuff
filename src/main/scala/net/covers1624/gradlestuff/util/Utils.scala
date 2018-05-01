@@ -12,7 +12,7 @@ object Utils {
     //The scala compiler has issues with the lambda in the arguments.
     //Fix is to use 'task.from(o, ().asInstanceOf[Action[CopySpec]])' instead.
     //But this is cleaner.
-    def from(task: AbstractCopyTask, o: Object, f: Action[CopySpec]) {
+    def from(task: AbstractCopyTask, o: Any, f: Action[CopySpec]) {
         task.from(o, f)
     }
 }
