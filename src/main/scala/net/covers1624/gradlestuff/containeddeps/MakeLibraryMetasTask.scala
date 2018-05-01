@@ -4,14 +4,13 @@ import java.io.{File, FileInputStream}
 import java.util.jar.{Attributes, JarFile, Manifest}
 import java.util.zip.ZipInputStream
 
+import net.covers1624.gradlestuff.containeddeps.MakeLibraryMetasTask._
 import net.covers1624.gradlestuff.util.JavaImplicits._
-import org.gradle.api.{Action, DefaultTask, Project}
+import net.covers1624.gradlestuff.util.Utils._
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.{OutputDirectory, TaskAction}
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.{DefaultTask, Project}
 import org.gradle.jvm.tasks.Jar
-import MakeLibraryMetasTask._
-import net.covers1624.gradlestuff.util.BsWrapper._
-import org.gradle.api.file.FileCopyDetails
 
 import scala.collection.JavaConverters._
 
@@ -23,7 +22,7 @@ class MakeLibraryMetasTask extends DefaultTask {
 
     var tasks: List[Jar] = _
     var configuration: Configuration = _
-    var project:Project = _
+    var project: Project = _
 
     @TaskAction
     def doTask() {
@@ -34,7 +33,7 @@ class MakeLibraryMetasTask extends DefaultTask {
         configuration.getResolvedConfiguration.getResolvedArtifacts.forEach(dep => {
             val file = dep.getFile
             val maven_artifact = dep.getId.getComponentIdentifier.toString
-            if(!hasMavenArtifactAttrib(project, file)) {
+            if (!hasMavenArtifactAttrib(project, file)) {
                 val manifest = new Manifest()
                 val attributes = manifest.getMainAttributes
                 attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
@@ -53,7 +52,7 @@ class MakeLibraryMetasTask extends DefaultTask {
 object MakeLibraryMetasTask {
     val MAVEN_ARTIFACT = new Attributes.Name("Maven-Artifact")
 
-    def hasMavenArtifactAttrib(project:Project, file: File): Boolean = {
+    def hasMavenArtifactAttrib(project: Project, file: File): Boolean = {
         val zi = new ZipInputStream(new FileInputStream(file))
 
         var ze = zi.getNextEntry
@@ -61,7 +60,6 @@ object MakeLibraryMetasTask {
             if (ze.getName.equalsIgnoreCase(JarFile.MANIFEST_NAME)) {
                 val manifest = new Manifest(zi)
                 if (manifest.getMainAttributes.containsKey(MAVEN_ARTIFACT)) {
-                    println("SKIP DA SHIT")
                     zi.closeQuietly()
                     return true
                 }

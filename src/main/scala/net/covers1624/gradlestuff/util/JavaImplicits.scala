@@ -2,10 +2,10 @@ package net.covers1624.gradlestuff.util
 
 import java.io._
 
-import org.gradle.api.{NamedDomainObjectCollection, Project, Task}
+import org.gradle.api.{Project, Task}
 
-import scala.io.Source
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 /**
  * Created by covers1624 on 4/02/2018.
@@ -124,9 +124,11 @@ object JavaImplicits {
     }
 
     implicit class Proj(val self: Project) {
-        def getTask(name: String, recursive:Boolean = false) = self.getTasksByName(name, recursive).asScala.headOption
-        def hasTask(name: String, recursive:Boolean = false): Boolean = getTask(name, recursive).nonEmpty
-        def makeTask[T <: Task](name:String, clazz:Class[T]) = self.getTasks.create(name, clazz)
+        def getTask(name: String, recursive: Boolean = false) = self.getTasksByName(name, recursive).asScala.headOption
+
+        def hasTask(name: String, recursive: Boolean = false): Boolean = getTask(name, recursive).nonEmpty
+
+        def makeTask[T <: Task](name: String, clazz: Class[T]) = self.getTasks.create(name, clazz)
     }
 
 }

@@ -1,7 +1,7 @@
 package net.covers1624.gradlestuff.repackeddeps
 
-import net.covers1624.gradlestuff.util.BsWrapper._
 import net.covers1624.gradlestuff.util.JavaImplicits._
+import net.covers1624.gradlestuff.util.Utils._
 import net.minecraftforge.gradle.user.{TaskSingleReobf, UserConstants}
 import org.gradle.api.{Plugin, Project}
 import org.gradle.jvm.tasks.Jar
@@ -27,6 +27,7 @@ class RepackedDepsPlugin extends Plugin[Project] {
 
 
     def afterEvaluate() {
+        project.getLogger.lifecycle("Loading RepackedDeps plugin!")
         if (project.getConfigurations.findByName(extension.configuration) == null) {
             throw new IllegalStateException(s"Configuration '${extension.configuration}' does not exist in the project.")
         }

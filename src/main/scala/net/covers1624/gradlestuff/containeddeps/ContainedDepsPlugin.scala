@@ -1,7 +1,6 @@
 package net.covers1624.gradlestuff.containeddeps
 
 import net.covers1624.gradlestuff.util.JavaImplicits._
-import org.gradle.api.specs.Spec
 import org.gradle.api.{Plugin, Project}
 import org.gradle.jvm.tasks.Jar
 
@@ -25,13 +24,14 @@ class ContainedDepsPlugin extends Plugin[Project] {
 
 
     def afterEvaluate() {
-        if(project.getConfigurations.findByName(extension.configuration) == null) {
+        project.getLogger.lifecycle("Loading ContainedDeps plugin!")
+        if (project.getConfigurations.findByName(extension.configuration) == null) {
             throw new IllegalStateException(s"Configuration '${extension.configuration}' does not exist in the project.")
         }
-        for(task <- extension.getTaskNames) {
-            if(!project.hasTask(task)) {
+        for (task <- extension.getTaskNames) {
+            if (!project.hasTask(task)) {
                 throw new IllegalStateException(s"Task '$task' does not exist in the project.")
-            } else if(!project.getTask(task).get.isInstanceOf[Jar]) {
+            } else if (!project.getTask(task).get.isInstanceOf[Jar]) {
                 throw new IllegalStateException(s"Task '$task' is not a 'Jar' task.")
             }
         }
