@@ -1,0 +1,90 @@
+
+apply plugin: 'idea'
+apply plugin: 'scala'
+apply plugin: 'maven'
+
+
+group = "net.covers1624"
+version = "1.0-SNAPSHOT"
+
+archivesBaseName = "GradleStuff"
+targetCompatibility = '1.8'
+sourceCompatibility = '1.8'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        name = "forge"
+        url = "http://files.minecraftforge.net/maven"
+    }
+}
+
+configurations {
+    compile
+}
+
+dependencies {
+    compile gradleApi()
+    compile "org.scala-lang:scala-library:2.12.4"
+    compile 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+}
+
+tasks.withType(ScalaCompile) { scalaCompileOptions.additionalParameters = ["-Xexperimental"] }
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            dependsOn 'build'
+            if (project.hasProperty("local_maven") || project.hasProperty("maven_pass")) {
+                if (project.hasProperty("maven_pass")) {
+                    println "Uploading to remote maven."
+                    repository(url: "http://maven_upload.covers1624.net/") {
+                        authentication(userName: "covers1624", password: project.getProperty("maven_pass"))
+                    }
+                } else {
+                    println "Uploading to local maven."
+                    repository(url: "file://${local_maven}")
+                }
+                pom {
+                    groupId = project.group
+                    artifactId = project.archivesBaseName
+                    project {
+                        name project.archivesBaseName
+                        packaging 'jar'
+                        description 'GradleStuff'
+                        url 'https://github.com/covers1624/GradleStuff'
+
+                        scm {
+                            url 'https://github.com/covers1624/GradleStuff'
+                            connection 'scm:git:git://github.com/covers1624/GradleStuff.git'
+                            developerConnection 'scm:git:git@github.com:covers1624/GradleStuff.git'
+                        }
+
+                        issueManagement {
+                            system 'github'
+                            url 'https://github.com/covers1624/GradleStuff/issues'
+                        }
+
+                        licenses {
+                            license {
+                                name 'All Rights Reserved'
+                                url 'https://github.com/covers1624/GradleStuff/README.md'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'cover1624'
+                                name 'covers1624'
+                                roles { role 'developer' }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
