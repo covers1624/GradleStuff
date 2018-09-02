@@ -27,7 +27,9 @@ configurations {
 dependencies {
     compile gradleApi()
     compile "org.scala-lang:scala-library:2.12.4"
-    compile 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    compile 'org.tukaani:xz:1.8'
+    compile 'org.apache.commons:commons-compress:1.18'
+    compileOnly 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
 }
 
 tasks.withType(ScalaCompile) { scalaCompileOptions.additionalParameters = ["-Xexperimental"] }
