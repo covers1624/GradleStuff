@@ -1,23 +1,24 @@
-
-apply plugin: 'idea'
-apply plugin: 'scala'
-apply plugin: 'maven'
+plugins {
+    id "java"
+    id "groovy"
+    id 'maven-publish'
+}
 
 
 group = "net.covers1624"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 archivesBaseName = "GradleStuff"
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
 repositories {
+    mavenLocal()
     jcenter()
     mavenCentral()
-    maven {
-        name = "forge"
-        url = "http://files.minecraftforge.net/maven"
-    }
+    maven { url "https://maven.covers1624.net/" }
+    maven { url "http://chickenbones.net/maven" }
+    maven { url "https://files.minecraftforge.net/maven" }
 }
 
 configurations {
@@ -26,65 +27,43 @@ configurations {
 
 dependencies {
     compile gradleApi()
-    compile "org.scala-lang:scala-library:2.12.4"
     compile 'org.tukaani:xz:1.8'
+    compile 'commons-io:commons-io:2.6'
     compile 'org.apache.commons:commons-compress:1.18'
+    compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.guava:guava:27.0.1-jre'
+    compile 'net.platinumdigitalgroup:JVDF:1.7.2'
+    compile 'net.rubygrapefruit:native-platform:0.14'
+    compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'org.apache.commons:commons-text:1.6'
+    compile 'org.apache.httpcomponents:httpclient:4.5.7'
     compileOnly 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
 }
 
-tasks.withType(ScalaCompile) { scalaCompileOptions.additionalParameters = ["-Xexperimental"] }
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
 
+publishing {
+    publications {
+        plugin(MavenPublication) { publication ->
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            dependsOn 'build'
-            if (project.hasProperty("local_maven") || project.hasProperty("maven_pass")) {
-                if (project.hasProperty("maven_pass")) {
-                    println "Uploading to remote maven."
-                    repository(url: "http://maven_upload.covers1624.net/") {
-                        authentication(userName: "covers1624", password: project.getProperty("maven_pass"))
-                    }
-                } else {
-                    println "Uploading to local maven."
-                    repository(url: "file://${local_maven}")
-                }
-                pom {
-                    groupId = project.group
-                    artifactId = project.archivesBaseName
-                    project {
-                        name project.archivesBaseName
-                        packaging 'jar'
-                        description 'GradleStuff'
-                        url 'https://github.com/covers1624/GradleStuff'
+            from components["java"]
 
-                        scm {
-                            url 'https://github.com/covers1624/GradleStuff'
-                            connection 'scm:git:git://github.com/covers1624/GradleStuff.git'
-                            developerConnection 'scm:git:git@github.com:covers1624/GradleStuff.git'
-                        }
-
-                        issueManagement {
-                            system 'github'
-                            url 'https://github.com/covers1624/GradleStuff/issues'
-                        }
-
-                        licenses {
-                            license {
-                                name 'All Rights Reserved'
-                                url 'https://github.com/covers1624/GradleStuff/README.md'
-                                distribution 'repo'
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id 'cover1624'
-                                name 'covers1624'
-                                roles { role 'developer' }
-                            }
-                        }
-                    }
+            artifact sourcesJar
+        }
+    }
+    if (project.hasProperty("maven_pass")) {
+        repositories {
+            maven {
+                url "https://maven-upload.covers1624.net/"
+                credentials {
+                    username 'covers1624'
+                    password project.getProperty('maven_pass')
                 }
             }
         }
