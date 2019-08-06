@@ -61,7 +61,7 @@ class ConfigurationWalker {
                     }
                 }
                 if (config.canBeResolved) {
-                    config.copy().incoming.artifacts.each {
+                    config.copy().incoming.artifactView({ it.lenient = true }).artifacts.each {
                         resolvedArtifacts.put(it.id, it)
                     }
                     def components = resolvedArtifacts.keySet()
