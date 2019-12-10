@@ -25,13 +25,14 @@ import java.lang.reflect.Modifier
 class SourceSetDependencyPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        project.apply(plugin: 'java')
-        injectSourceSetDependencyConverter(project)
         def pluginConvention = project.convention.findPlugin(JavaPluginConvention)
-        pluginConvention.sourceSets.all { SourceSet ss ->
-            def output = ss.output
-            def convention = (output as HasConvention).convention
-            convention.create(SourceAwareOutputExtension, "sourceSet", DefaultSourceAwareOutputExtension, ss)
+        if(pluginConvention != null) {
+            injectSourceSetDependencyConverter(project)
+            pluginConvention.sourceSets.all { SourceSet ss ->
+                def output = ss.output
+                def convention = (output as HasConvention).convention
+                convention.create(SourceAwareOutputExtension, "sourceSet", DefaultSourceAwareOutputExtension, ss)
+            }
         }
     }
 
