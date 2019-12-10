@@ -51,8 +51,8 @@ class ConfigurationWalker {
         if (hasJavadoc) extraArtifacts << JavadocArtifact
 
         configurations.each { config ->
+            visitor.startVisit(config)
             if (config.canBeResolved || forceResolveDeps) {
-                visitor.startVisit(config)
                 Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = [:]
                 Table<ComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> resolvedAuxiliary = new Table()
                 config.dependencies.each {
@@ -102,8 +102,8 @@ class ConfigurationWalker {
                         }
                     }
                 }
-                visitor.endVisit()
             }
+            visitor.endVisit()
         }
     }
 
