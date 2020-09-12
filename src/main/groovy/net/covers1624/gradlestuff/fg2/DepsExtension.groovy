@@ -36,18 +36,18 @@ class DepsExtension {
         List<Jar> jTasks = []
         tasks.each {
             if (it instanceof Jar) {
-                jTasks = +it
+                jTasks << it
             } else if (it instanceof TaskProvider) {
                 def ret = it.get()
                 if (ret instanceof Jar) {
-                    jTasks = +ret
+                    jTasks << ret
                 } else {
                     throw new GradleException("Got '" + ret.class + "'. Expected 'Jar' task.")
                 }
             } else if (it instanceof CharSequence) {
                 def ret = project.tasks.getByName(it.toString())
                 if (ret instanceof Jar) {
-                    jTasks = +ret
+                    jTasks << ret
                 } else {
                     throw new GradleException("Got '" + ret.class + "'. Expected 'Jar' task.")
                 }

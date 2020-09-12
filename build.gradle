@@ -4,20 +4,21 @@ plugins {
     id 'maven-publish'
 }
 
-
 group = "net.covers1624"
-version = "1.1-SNAPSHOT"
-
 archivesBaseName = "GradleStuff"
+version = "1.2.0"
+
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
+
+version = "$version." + (System.getenv("BUILD_NUMBER") ?: "1")
+println "Starting build of ${archivesBaseName}, Version: ${version}"
 
 repositories {
     mavenLocal()
     jcenter()
     mavenCentral()
     maven { url "https://maven.covers1624.net/" }
-    maven { url "http://chickenbones.net/maven" }
     maven { url "https://files.minecraftforge.net/maven" }
 }
 
@@ -26,17 +27,17 @@ configurations {
 }
 
 dependencies {
-    compile gradleApi()
-    compile 'org.tukaani:xz:1.8'
-    compile 'commons-io:commons-io:2.6'
-    compile 'org.apache.commons:commons-compress:1.18'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.google.guava:guava:27.0.1-jre'
-    compile 'net.platinumdigitalgroup:JVDF:1.7.2'
-    compile 'net.rubygrapefruit:native-platform:0.14'
-    compile 'org.apache.commons:commons-lang3:3.8.1'
-    compile 'org.apache.commons:commons-text:1.6'
-    compile 'org.apache.httpcomponents:httpclient:4.5.7'
+    implementation gradleApi()
+    implementation 'org.tukaani:xz:1.8'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'org.apache.commons:commons-compress:1.18'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.guava:guava:27.0.1-jre'
+    implementation 'net.platinumdigitalgroup:JVDF:1.7.2'
+    implementation 'net.rubygrapefruit:native-platform:0.14'
+    implementation 'org.apache.commons:commons-lang3:3.8.1'
+    implementation 'org.apache.commons:commons-text:1.6'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.7'
     compileOnly 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
 }
 
@@ -46,6 +47,17 @@ task sourcesJar(type: Jar) {
 }
 
 publishing {
+    repositories {
+        if (System.getenv('MAVEN_PASS')) {
+            maven {
+                url "https://maven-upload.covers1624.net/"
+                credentials {
+                    username 'covers1624'
+                    password System.getenv('MAVEN_PASS')
+                }
+            }
+        }
+    }
     publications {
         plugin(MavenPublication) { publication ->
             groupId project.group
@@ -55,17 +67,6 @@ publishing {
             from components["java"]
 
             artifact sourcesJar
-        }
-    }
-    if (project.hasProperty("maven_pass")) {
-        repositories {
-            maven {
-                url "https://maven-upload.covers1624.net/"
-                credentials {
-                    username 'covers1624'
-                    password project.getProperty('maven_pass')
-                }
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package net.covers1624.gradlestuff.fg2
 
 import net.minecraftforge.gradle.user.TaskSingleReobf
+import net.minecraftforge.gradle.user.UserConstants
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
