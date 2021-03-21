@@ -7,7 +7,7 @@ plugins {
 
 group = "net.covers1624"
 archivesBaseName = "GradleStuff"
-version = "1.4.1"
+version = "2.0.0"
 
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
