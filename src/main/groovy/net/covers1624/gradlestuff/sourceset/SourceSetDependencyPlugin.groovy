@@ -64,14 +64,6 @@ class SourceSetDependencyPlugin implements Plugin<Project> {
         }
     }
 
-    private def getField(Field field, Object obj) {
-        return field.get(obj)
-    }
-
-    private def setField(Field field, Object obj, Object instance) {
-        field.set(obj, instance);
-    }
-
     /**
      * This black magic does a lot of reflection and injects a NotationConverter into DependencyFactory.
      * As of writing this there is currently no api for adding NotationConverters so these hacks exist.
@@ -80,13 +72,27 @@ class SourceSetDependencyPlugin implements Plugin<Project> {
         ProjectInternal projectInternal = (ProjectInternal) project
         Instantiator instantiator = projectInternal.getServices().get(Instantiator.class)
         DependencyHandler handler = project.getDependencies()
-        DependencyFactory factory = getField(f_dependencyFactory, handler)
-        NotationParser notationParser = getField(f_dependencyNotationParser, factory)
-        NotationParser delegateParser = getField(f_notationParserDelegate, notationParser)
+        DependencyFactory factory = f_dependencyFactory.get(handler)
+        NotationParser notationParser = f_dependencyNotationParser.get(factory)
+        NotationParser delegateParser = f_notationParserDelegate.get(notationParser)
+
+        while (true) {
+            if (!(delegateParser instanceof NotationConverterToNotationParserAdapter)) {
+                if (!delegateParser.class.name.endsWith(".JustReturningParser")) {
+                    throw new RuntimeException("Unexpected NotationParser type ${delegateParser.class.name}")
+                }
+                Field f = delegateParser.class.getDeclaredField("delegate")
+                f.setAccessible(true)
+                delegateParser = f.get(delegateParser)
+                continue
+            }
+            break
+        }
+
         List<NotationConverter> converters = new LinkedList<>()
         converters.add(new SourceSetOutputNotationConverter(instantiator))
-        converters.add(getField(f_notationConverterDelegate, delegateParser))
-        setField(f_notationConverterDelegate, delegateParser, new CompositeNotationConverter(converters))
+        converters.add(f_notationConverterDelegate.get(delegateParser))
+        f_notationConverterDelegate.set(delegateParser, new CompositeNotationConverter(converters))
     }
     //endregion
 }
