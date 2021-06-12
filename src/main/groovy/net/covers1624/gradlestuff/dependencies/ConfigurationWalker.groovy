@@ -53,6 +53,11 @@ class ConfigurationWalker {
         configurations.each { config ->
             visitor.startVisit(config)
             if (config.canBeResolved || forceResolveDeps) {
+                config = config.copy()
+                if (!config.canBeResolved) {
+                    config.canBeResolved = true
+                    config.canBeConsumed = true
+                }
                 Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = [:]
                 Table<ComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> resolvedAuxiliary = new Table()
                 config.dependencies.each {
@@ -60,46 +65,44 @@ class ConfigurationWalker {
                         visitor.visitSourceSetDependency(it.sourceSet)
                     }
                 }
-                if (config.canBeResolved) {
-                    config.copy().incoming.artifactView({ it.lenient = true }).artifacts.each {
-                        resolvedArtifacts.put(it.id, it)
-                    }
-                    def components = resolvedArtifacts.keySet()
-                            .findAll { it.componentIdentifier instanceof ModuleComponentIdentifier }
-                            .collect { it.componentIdentifier as ModuleComponentIdentifier }
-                    if (!extraArtifacts.empty) {
-                        def result = dependencyHandler.createArtifactResolutionQuery()
-                                .forComponents(components)
-                                .withArtifacts(JvmLibrary, extraArtifacts)
-                                .execute()
-                        result.resolvedComponents.each { ar ->
-                            extraArtifacts.each { type ->
-                                ar.getArtifacts(type).each { artifact ->
-                                    if (artifact instanceof ResolvedArtifactResult) {
-                                        resolvedAuxiliary.computeIfAbsent(ar.id, type, { new HashSet() }) << artifact
-                                    }
+                config.incoming.artifactView({ it.lenient = true }).artifacts.each {
+                    resolvedArtifacts.put(it.id, it)
+                }
+                def components = resolvedArtifacts.keySet()
+                        .findAll { it.componentIdentifier instanceof ModuleComponentIdentifier }
+                        .collect { it.componentIdentifier as ModuleComponentIdentifier }
+                if (!extraArtifacts.empty) {
+                    def result = dependencyHandler.createArtifactResolutionQuery()
+                            .forComponents(components)
+                            .withArtifacts(JvmLibrary, extraArtifacts)
+                            .execute()
+                    result.resolvedComponents.each { ar ->
+                        extraArtifacts.each { type ->
+                            ar.getArtifacts(type).each { artifact ->
+                                if (artifact instanceof ResolvedArtifactResult) {
+                                    resolvedAuxiliary.computeIfAbsent(ar.id, type, { new HashSet() }) << artifact
                                 }
                             }
                         }
                     }
-                    resolvedArtifacts.each { key, value ->
-                        def componentIdentifier = value.id.componentIdentifier
-                        if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                            def moduleIdentifier = componentIdentifier as ModuleComponentIdentifier
-                            File classes = value.file.absoluteFile
-                            def sourcesArtifacts = resolvedAuxiliary.getOrDefault(componentIdentifier, SourcesArtifact, Collections.emptySet())
-                            def javadocArtifacts = resolvedAuxiliary.getOrDefault(componentIdentifier, JavadocArtifact, Collections.emptySet())
-                            def depName = DependencyName.parseMaven(moduleIdentifier.toString())
-                            if (value.id instanceof DefaultModuleComponentArtifactIdentifier) {
-                                def id = value.id as DefaultModuleComponentArtifactIdentifier
-                                def ivyName = id.name
-                                depName.classifier = ivyName.classifier
-                                depName.extension = StringUtils.isNotEmpty(ivyName.extension) ? ivyName.extension : 'jar'
-                            }
-                            def sources = sourcesArtifacts.empty ? null : sourcesArtifacts.first().file.absoluteFile
-                            def javadoc = javadocArtifacts.empty ? null : javadocArtifacts.first().file.absoluteFile
-                            visitor.visitModuleDependency(depName, classes, sources, javadoc)
+                }
+                resolvedArtifacts.each { key, value ->
+                    def componentIdentifier = value.id.componentIdentifier
+                    if (componentIdentifier instanceof ModuleComponentIdentifier) {
+                        def moduleIdentifier = componentIdentifier as ModuleComponentIdentifier
+                        File classes = value.file.absoluteFile
+                        def sourcesArtifacts = resolvedAuxiliary.getOrDefault(componentIdentifier, SourcesArtifact, Collections.emptySet())
+                        def javadocArtifacts = resolvedAuxiliary.getOrDefault(componentIdentifier, JavadocArtifact, Collections.emptySet())
+                        def depName = DependencyName.parseMaven(moduleIdentifier.toString())
+                        if (value.id instanceof DefaultModuleComponentArtifactIdentifier) {
+                            def id = value.id as DefaultModuleComponentArtifactIdentifier
+                            def ivyName = id.name
+                            depName.classifier = ivyName.classifier
+                            depName.extension = StringUtils.isNotEmpty(ivyName.extension) ? ivyName.extension : 'jar'
                         }
+                        def sources = sourcesArtifacts.empty ? null : sourcesArtifacts.first().file.absoluteFile
+                        def javadoc = javadocArtifacts.empty ? null : javadocArtifacts.first().file.absoluteFile
+                        visitor.visitModuleDependency(depName, classes, sources, javadoc)
                     }
                 }
             }
