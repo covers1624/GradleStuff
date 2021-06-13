@@ -3,11 +3,12 @@ plugins {
     id "java-library"
     id "groovy"
     id 'maven-publish'
+    id 'org.cadixdev.licenser' version '0.6.0'
 }
 
 group = "net.covers1624"
 archivesBaseName = "GradleStuff"
-version = "2.0.0"
+version = "2.1.0"
 
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
@@ -42,16 +43,31 @@ dependencies {
     compileOnly 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
 }
 
+jar {
+    from file("LICENSE.txt")
+}
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
+    from file("LICENSE.txt")
+}
+
+license {
+    header = file("LICENSE-header.txt")
+    properties {
+        year = new Date().format("yyyy")
+    }
+    newLine false
+
+    include 'net/covers1624/gradlestuff/**'
 }
 
 publishing {
     repositories {
         if (System.getenv('MAVEN_PASS')) {
             maven {
-                url "https://maven-upload.covers1624.net/"
+                url "https://nexus.covers1624.net/repository/maven-releases/"
                 credentials {
                     username 'covers1624'
                     password System.getenv('MAVEN_PASS')
@@ -68,6 +84,36 @@ publishing {
             from components["java"]
 
             artifact sourcesJar
+
+            pom {
+                name = archivesBaseName
+                description = archivesBaseName
+                //The publish plugin doesnt like GString's here apparently..
+                url = "https://github.com/covers1624/${archivesBaseName}".toString()
+                scm {
+                    url = "https://github.com/covers1624/${archivesBaseName}".toString()
+                    connection = "scm:git:git://github.com/covers1624/${archivesBaseName}.git".toString()
+                    connection = "scm:git:git@github.com:covers1624/${archivesBaseName}.git".toString()
+                }
+
+                issueManagement {
+                    system = 'github'
+                    url = "https://github.com/covers1624/${archivesBaseName}/issues".toString()
+                }
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://raw.githubusercontent.com/covers1624/${archivesBaseName}/master/LICENSE.txt".toString()
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'covers1624'
+                        name = 'covers1624'
+                    }
+                }
+            }
         }
     }
 }
