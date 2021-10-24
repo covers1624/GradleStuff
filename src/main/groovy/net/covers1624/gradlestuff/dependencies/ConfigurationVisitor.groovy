@@ -5,6 +5,7 @@
  */
 package net.covers1624.gradlestuff.dependencies
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 
@@ -18,6 +19,8 @@ interface ConfigurationVisitor {
     void visitModuleDependency(DependencyName name, File classes, File sources, File javadoc);
 
     void visitSourceSetDependency(SourceSet ss)
+
+    void visitProjectDependency(Project project)
 
     void endVisit()
 }
