@@ -20,9 +20,9 @@ import org.gradle.internal.typeconversion.CompositeNotationConverter
 import org.gradle.internal.typeconversion.NotationConverter
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter
 import org.gradle.internal.typeconversion.NotationParser
+import sun.misc.Unsafe
 
 import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 
 /**
  * Created by covers1624 on 2/8/19.
@@ -41,29 +41,30 @@ class SourceSetDependencyPlugin implements Plugin<Project> {
         }
     }
 
-
     //region Reflection Hax
     //This was originally written in java for use in WorkspaceTool, probably a cleaner groovy impl around.
-    private static final Field f_modifiers
+    private static final Unsafe unsafe
     private static final Field f_dependencyFactory
     private static final Field f_dependencyNotationParser
     private static final Field f_notationParserDelegate
     private static final Field f_notationConverterDelegate
+    private static final int f_notationConverterDelegateOffset
 
     static {
         try {
-            f_modifiers = Field.class.getDeclaredField("modifiers")
+            Field f_theUnsafe = Unsafe.class.getDeclaredField("theUnsafe")
+            f_theUnsafe.setAccessible(true)
+            unsafe = f_theUnsafe.get(null)
             f_dependencyFactory = DefaultDependencyHandler.class.getDeclaredField("dependencyFactory")
             f_dependencyNotationParser = DefaultDependencyFactory.class.getDeclaredField("dependencyNotationParser")
             f_notationParserDelegate = Class.forName("org.gradle.internal.typeconversion.ErrorHandlingNotationParser").getDeclaredField("delegate")
             f_notationConverterDelegate = NotationConverterToNotationParserAdapter.class.getDeclaredField("converter")
 
-            f_modifiers.setAccessible(true)
             f_dependencyFactory.setAccessible(true)
             f_dependencyNotationParser.setAccessible(true)
             f_notationParserDelegate.setAccessible(true)
             f_notationConverterDelegate.setAccessible(true)
-            f_modifiers.set(f_notationConverterDelegate, f_notationConverterDelegate.getModifiers() & (~Modifier.FINAL))
+            f_notationConverterDelegateOffset = unsafe.objectFieldOffset(f_notationConverterDelegate)
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -97,7 +98,7 @@ class SourceSetDependencyPlugin implements Plugin<Project> {
         List<NotationConverter> converters = new LinkedList<>()
         converters.add(new SourceSetOutputNotationConverter(instantiator))
         converters.add(f_notationConverterDelegate.get(delegateParser))
-        f_notationConverterDelegate.set(delegateParser, new CompositeNotationConverter(converters))
+        unsafe.putObject(delegateParser, f_notationConverterDelegateOffset, new CompositeNotationConverter(converters))
     }
     //endregion
 }
