@@ -5,15 +5,16 @@
  */
 package net.covers1624.gradlestuff.xz
 
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
-import org.apache.commons.io.IOUtils
+import net.covers1624.quack.annotation.Requires
 import org.gradle.api.internal.file.archive.compression.CompressedReadableResource
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ResourceException
+import org.tukaani.xz.SingleXZInputStream
 
 /**
  * Created by covers1624 on 3/05/19.
  */
+@Requires("org.tukaani:xz")
 class XZArchiver implements CompressedReadableResource {
 
     private final File file
@@ -31,12 +32,12 @@ class XZArchiver implements CompressedReadableResource {
     InputStream read() throws MissingResourceException, ResourceException {
         InputStream is
         try {
-            return is = new XZCompressorInputStream(file.newInputStream())
+            return is = new SingleXZInputStream(file.newInputStream())
         } catch (FileNotFoundException e) {
-            IOUtils.closeQuietly(is)
+            TarXZ.closeQuietly(is)
             throw new MissingResourceException(String.format("Could not read '%s' as it does not exist.", getDisplayName()), e)
         } catch (IOException e) {
-            IOUtils.closeQuietly(is)
+            TarXZ.closeQuietly(is)
             throw new ResourceException(String.format("Could not read %s.", getDisplayName()), e)
         }
         return null

@@ -5,6 +5,7 @@
  */
 package net.covers1624.gradlestuff.steam
 
+import net.covers1624.quack.annotation.Requires
 import net.platinumdigitalgroup.jvdf.VDFNode
 import net.platinumdigitalgroup.jvdf.VDFParser
 import org.gradle.api.Project
@@ -13,6 +14,8 @@ import org.gradle.api.logging.Logger
 /**
  * Created by covers1624 on 4/05/19.
  */
+@Requires('net.platinumdigitalgroup:JVDF')
+@Requires('net.rubygrapefruit:native-platform:0.14')
 class FindSteamGameAction implements FindSteamGameSpec {
 
     private final Project project

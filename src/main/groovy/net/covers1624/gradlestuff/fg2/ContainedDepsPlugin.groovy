@@ -5,7 +5,6 @@
  */
 package net.covers1624.gradlestuff.fg2
 
-
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
