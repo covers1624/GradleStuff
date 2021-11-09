@@ -8,7 +8,7 @@ plugins {
 
 group = "net.covers1624"
 archivesBaseName = "GradleStuff"
-version = "3.0.0"
+version = "3.0.1"
 
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
@@ -28,14 +28,14 @@ dependencies {
     implementation gradleApi()
 
     // Required
-    api 'net.covers1624:Quack:0.3.7.29'
+    api 'net.covers1624:Quack:0.4.0.31'
 
     // Steam
-    implementation 'net.platinumdigitalgroup:JVDF:1.7.2'
-    implementation 'net.rubygrapefruit:native-platform:0.14'
+    compileOnly 'net.platinumdigitalgroup:JVDF:1.7.2'
+    compileOnly 'net.rubygrapefruit:native-platform:0.14'
 
     // XZ
-    implementation 'org.tukaani:xz:1.9'
+    compileOnly 'org.tukaani:xz:1.9'
 
     compileOnly 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:22.0.0'
