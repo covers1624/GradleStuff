@@ -3,7 +3,6 @@ plugins {
     id "java-library"
     id "groovy"
     id 'maven-publish'
-    id 'org.cadixdev.licenser' version '0.6.0'
 }
 
 group = "net.covers1624"
@@ -49,16 +48,6 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
     from file("LICENSE.txt")
-}
-
-license {
-    header = file("LICENSE-header.txt")
-    properties {
-        year = new Date().format("yyyy")
-    }
-    newLine false
-
-    include 'net/covers1624/gradlestuff/**'
 }
 
 publishing {
