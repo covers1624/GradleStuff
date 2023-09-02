@@ -13,6 +13,7 @@ import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.artifacts.DefaultDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -54,6 +55,7 @@ public class SourceSetDependencyPlugin implements Plugin<Project> {
     private static final Field f_dependencyNotationParser;
     private static final Field f_notationParserDelegate;
     private static final Field f_notationConverterDelegate;
+    private static final Field f_notationParser;
     private static final long f_notationConverterDelegateOffset;
 
     static {
@@ -65,6 +67,16 @@ public class SourceSetDependencyPlugin implements Plugin<Project> {
             f_dependencyNotationParser = DefaultDependencyFactory.class.getDeclaredField("dependencyNotationParser");
             f_notationParserDelegate = Class.forName("org.gradle.internal.typeconversion.ErrorHandlingNotationParser").getDeclaredField("delegate");
             f_notationConverterDelegate = NotationConverterToNotationParserAdapter.class.getDeclaredField("converter");
+
+            // In Gradle 8, DependencyNotationParser.create went from directly returning the composite chain, to returning itself
+            Field notationParserField;
+            try {
+                notationParserField = DependencyNotationParser.class.getDeclaredField("notationParser");
+                notationParserField.setAccessible(true);
+            } catch (Throwable ignored) {
+                notationParserField = null;
+            }
+            f_notationParser = notationParserField;
 
             f_dependencyFactory.setAccessible(true);
             f_dependencyNotationParser.setAccessible(true);
@@ -85,8 +97,11 @@ public class SourceSetDependencyPlugin implements Plugin<Project> {
         ProjectInternal projectInternal = (ProjectInternal) project;
         Instantiator instantiator = projectInternal.getServices().get(Instantiator.class);
         DependencyHandler handler = project.getDependencies();
-        DependencyFactory factory = (DependencyFactory) f_dependencyFactory.get(handler);
-        NotationParser notationParser = unsafeCast(f_dependencyNotationParser.get(factory));
+        Object factory = f_dependencyFactory.get(handler);
+        Object notationParser = f_dependencyNotationParser.get(factory);
+        if (f_notationParser != null) {
+            notationParser = f_notationParser.get(notationParser);
+        }
         NotationParser delegateParser = unsafeCast(f_notationParserDelegate.get(notationParser));
 
         while (true) {
